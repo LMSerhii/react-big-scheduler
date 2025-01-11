@@ -8,9 +8,9 @@ import TestPage from "./test-page";
 ReactDOM.render(
   <ThemeProvider theme={theme}>
     <CssBaseline />
-    <React.StrictMode>
-      <TestPage />
-    </React.StrictMode>
+    {/* <React.StrictMode> */}
+    <TestPage />
+    {/* </React.StrictMode> */}
   </ThemeProvider>,
   document.getElementById("root")
 );

@@ -1,10 +1,20 @@
 import { useDraggable } from "@dnd-kit/core";
 import DeleteIcon from "@mui/icons-material/Close";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import { Box, IconButton, Tooltip, Typography } from "@mui/material";
+import { Tooltip } from "@mui/material";
 import React, { useCallback } from "react";
 import { EventItemProps } from "types";
-import { useStyles } from "./styles";
+import {
+  Content,
+  DeleteButton,
+  Details,
+  DetailText,
+  DragHandle,
+  Header,
+  ResizeHandle,
+  StyledEventBox,
+  Title
+} from "./styles";
 
 const EventItem: React.FC<EventItemProps> = ({
   event,
@@ -32,13 +42,6 @@ const EventItem: React.FC<EventItemProps> = ({
       }
     : undefined;
 
-  const { classes } = useStyles({
-    width,
-    left,
-    transform: styleTransform,
-    bgColor: project?.bgColor || event.bgColor
-  });
-
   const handleResizeStart = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -63,42 +66,41 @@ const EventItem: React.FC<EventItemProps> = ({
   );
 
   return (
-    <Box ref={setNodeRef} className={classes.root} {...attributes}>
-      <Box className={classes.dragHandle} {...listeners}>
+    <StyledEventBox
+      ref={setNodeRef}
+      width={width}
+      left={left}
+      transform={styleTransform}
+      bgColor={project?.bgColor || event.bgColor}
+      {...attributes}
+    >
+      <DragHandle {...listeners}>
         <DragIndicatorIcon fontSize="small" />
-      </Box>
+      </DragHandle>
 
-      <Box className={classes.content}>
-        <Box className={classes.header}>
+      <Content>
+        <Header>
           <Tooltip title={project?.name || event.title || ""}>
-            <Typography variant="subtitle2" className={classes.title}>
-              {project?.name || event.title}
-            </Typography>
+            <Title variant="subtitle2">{project?.name || event.title}</Title>
           </Tooltip>
-          <IconButton
-            size="small"
-            onClick={onDelete}
-            className={classes.deleteButton}
-          >
+          <DeleteButton size="small" onClick={onDelete}>
             <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Box>
+          </DeleteButton>
+        </Header>
 
-        <Box className={classes.details}>
-          <Typography variant="caption" className={classes.detailText}>
-            {resource?.name}
-          </Typography>
-          <Typography variant="caption" className={classes.detailText}>
+        <Details>
+          <DetailText variant="caption">{resource?.name}</DetailText>
+          <DetailText variant="caption">
             {`${event.hoursPerDay}h/day`}
-          </Typography>
-          <Typography variant="caption" className={classes.detailText}>
+          </DetailText>
+          <DetailText variant="caption">
             {`${event.start.toLocaleDateString()} - ${event.end.toLocaleDateString()}`}
-          </Typography>
-        </Box>
-      </Box>
+          </DetailText>
+        </Details>
+      </Content>
 
-      <Box className={classes.resizeHandle} onMouseDown={handleResizeStart} />
-    </Box>
+      <ResizeHandle onMouseDown={handleResizeStart} />
+    </StyledEventBox>
   );
 };
 
