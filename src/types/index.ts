@@ -1,47 +1,78 @@
 export interface Resource {
-  id: string | number;
+  id: string;
   name: string;
-  role?: string;
+  role: string;
+  availableHours: number;
+  allocatedHours: number;
   skills?: string[];
-  availableHours?: number;
-  allocatedHours?: number;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  startDate: Date;
+  endDate: Date;
+  deadline: Date;
+  totalHours: number;
+  allocatedHours: number;
+  team: Resource[];
+  bgColor?: string;
+  requiredRoles?: {
+    role: string;
+    count: number;
+    hours: number;
+  }[];
 }
 
 export interface SchedulerEvent {
-  id: string | number;
-  title: string;
+  id: string;
+  resourceId: string;
+  projectId: string;
   start: Date;
   end: Date;
-  resourceId: string | number;
+  hoursPerDay: number;
+  totalHours: number;
+  title?: string;
+  bgColor?: string;
+}
+
+export interface EventItemProps {
+  event: SchedulerEvent;
+  project?: Project;
+  resource?: Resource;
+  width: number;
+  left: number;
+  onResize?: (width: number) => void;
+  onDelete?: () => void;
 }
 
 export interface SchedulerProps {
   resources: Resource[];
+  projects: Project[];
   events: SchedulerEvent[];
+  viewType?: ViewType;
   startDate?: Date;
   endDate?: Date;
-  viewType?: ViewType;
-  onEventClick?: (event: SchedulerEvent) => void;
   onEventChange?: (event: SchedulerEvent) => void;
-  onEventResize?: (event: SchedulerEvent) => void;
+  onEventCreate?: (event: SchedulerEvent) => void;
+  onEventDelete?: (eventId: string) => void;
 }
 
-export type ViewType = "day" | "week" | "month";
+export interface FilterOptions {
+  dateRange?: [Date, Date];
+  roles?: string[];
+  skills?: string[];
+  availabilityMin?: number;
+  projectId?: string;
+  resourceId?: string;
+}
+
+export type ViewType = "resource" | "project";
 
 export interface SchedulerConfig {
   headerHeight?: number;
   cellWidth?: number;
   timeLineHeight?: number;
-}
-
-export interface SchedulerViewProps {
-  viewType: ViewType;
-  resources: Resource[];
-  events: Event[];
-  config: SchedulerConfig;
-  onEventClick?: (event: Event) => void;
-  onEventChange?: (event: Event) => void;
-  onEventResize?: (event: Event) => void;
 }
 
 export interface TimelineViewProps {
@@ -55,4 +86,19 @@ export interface DragItem {
   id: string | number;
   left: number;
   type: string;
+}
+
+export interface ViewSelectorProps {
+  viewType: ViewType;
+  onViewChange: (newViewType: ViewType) => void;
+}
+
+export interface EventPosition {
+  left: number;
+  width: number;
+}
+
+export interface TimeCalculation {
+  start: Date;
+  end: Date;
 }

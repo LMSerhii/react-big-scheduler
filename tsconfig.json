@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -12,12 +11,18 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react",
     "declaration": true,
     "declarationDir": "lib/types",
     "sourceMap": true,
     "outDir": "lib",
-    "baseUrl": "src"
+    "baseUrl": "src",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "jsx": "react-jsx",
+    "paths": {
+      "@mui/material/*": ["../node_modules/@mui/material/*"],
+      "@mui/styles/*": ["../node_modules/@mui/styles/*"]
+    },
+    "types": ["@mui/material"]
   },
   "include": ["src"],
   "exclude": ["node_modules", "lib", "example"]

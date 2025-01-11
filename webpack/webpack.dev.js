@@ -9,7 +9,20 @@ module.exports = {
     path: path.resolve(__dirname, "../dist")
   },
   resolve: {
-    extensions: [".ts", ".tsx", ".js", ".jsx"]
+    extensions: [".ts", ".tsx", ".js", ".jsx"],
+    alias: {
+      "@mui/material": path.resolve(__dirname, "../node_modules/@mui/material"),
+      "@mui/system": path.resolve(__dirname, "../node_modules/@mui/system"),
+      "@mui/styles": path.resolve(__dirname, "../node_modules/@mui/styles"),
+      "@emotion/react": path.resolve(
+        __dirname,
+        "../node_modules/@emotion/react"
+      ),
+      "@emotion/styled": path.resolve(
+        __dirname,
+        "../node_modules/@emotion/styled"
+      )
+    }
   },
   devServer: {
     static: {
@@ -23,7 +36,19 @@ module.exports = {
       {
         test: /\.(ts|tsx)$/,
         exclude: /node_modules/,
-        use: ["babel-loader", "ts-loader"]
+        use: [
+          {
+            loader: "babel-loader",
+            options: {
+              cacheDirectory: true,
+              presets: [
+                "@babel/preset-env",
+                ["@babel/preset-react", { runtime: "automatic" }],
+                "@babel/preset-typescript"
+              ]
+            }
+          }
+        ]
       },
       {
         test: /\.css$/,
