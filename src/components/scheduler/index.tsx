@@ -1,130 +1,117 @@
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
+import { Box, Paper } from "@mui/material";
 import React, { useCallback, useState } from "react";
-import {
-  DEFAULT_CONFIG,
-  DEFAULT_END_DATE,
-  DEFAULT_START_DATE,
-  DEFAULT_VIEW_TYPE
-} from "../../constants";
-import { Resource, SchedulerEvent, SchedulerProps } from "../../types";
-import {
-  calculateEventTime,
-  getEventPosition,
-  isEventInRange
-} from "../../utils/event.utils";
-import EventItem from "../event-item";
+import { DragItem, FilterOptions, SchedulerProps, ViewType } from "../../types";
+import { calculateEventTime, filterEvents } from "../../utils/event.utils";
+import Analytics from "../analytics";
+import FilterPanel from "../filter-panel";
 import ResourceView from "../resource-view";
 import TimelineView from "../timeline-view";
-import { styles } from "./styles";
+import ViewSelector from "../view-selector";
+import { useStyles } from "./styles";
 
-const Scheduler: React.FC<SchedulerProps> = ({
+export const Scheduler: React.FC<SchedulerProps> = ({
   resources,
+  projects,
   events,
-  startDate = DEFAULT_START_DATE,
-  endDate = DEFAULT_END_DATE,
-  viewType = DEFAULT_VIEW_TYPE,
-  onEventClick,
+  startDate,
+  endDate,
   onEventChange,
-  onEventResize
+  onEventCreate,
+  onEventDelete
 }) => {
-  const [config] = useState(DEFAULT_CONFIG);
+  const classes = useStyles();
+  const [filters, setFilters] = useState<FilterOptions>({});
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [viewType, setViewType] = useState<ViewType>("resource");
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, delta } = event;
-    const draggedEvent = events.find((e) => e.id.toString() === active.id);
+  const filteredEvents = filterEvents(events, filters);
 
-    if (draggedEvent && onEventChange) {
-      const newLeft = (active.data.current?.left || 0) + delta.x;
-      const newTime = calculateEventTime(
-        newLeft,
-        startDate,
-        config.cellWidth,
-        viewType
-      );
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, delta } = event;
+      const draggedEvent = events.find((e) => e.id.toString() === active.id);
 
-      onEventChange({
-        ...draggedEvent,
-        start: newTime.start,
-        end: newTime.end
-      });
-    }
-  };
+      const dragData = active.data.current as DragItem | undefined;
 
-  const handleEventResize = useCallback(
-    (event: SchedulerEvent, width: number) => {
-      if (onEventResize) {
+      if (draggedEvent && onEventChange && dragData) {
+        // Переконуємося, що left є числом
+        const currentLeft =
+          typeof dragData.left === "number"
+            ? dragData.left
+            : parseInt(dragData.left as string, 10);
+        const newLeft = currentLeft + delta.x;
+
         const newTime = calculateEventTime(
-          width,
-          event.start,
-          config.cellWidth,
-          viewType
+          newLeft,
+          startDate || new Date(),
+          60
         );
-        onEventResize({
-          ...event,
+
+        onEventChange({
+          ...draggedEvent,
+          start: newTime.start,
           end: newTime.end
         });
       }
     },
-    [onEventResize, config.cellWidth, viewType]
+    [events, startDate, viewType, onEventChange]
   );
-
-  const renderEvents = useCallback(
-    (resource: Resource) => {
-      return events
-        .filter((event) => event.resourceId === resource.id)
-        .filter((event) => isEventInRange(event, startDate, endDate))
-        .map((event) => {
-          const { left, width } = getEventPosition(
-            event,
-            startDate,
-            config.cellWidth,
-            viewType
-          );
-
-          return (
-            <EventItem
-              key={event.id}
-              event={event}
-              width={width}
-              left={left}
-              onClick={() => onEventClick?.(event)}
-              onResize={(newWidth) => handleEventResize(event, newWidth)}
-            />
-          );
-        });
-    },
-    [
-      events,
-      startDate,
-      endDate,
-      config.cellWidth,
-      viewType,
-      onEventClick,
-      handleEventResize
-    ]
-  );
+  const handleViewChange = (newViewType: "resource" | "project") => {
+    setViewType(newViewType);
+  };
 
   return (
     <DndContext onDragEnd={handleDragEnd}>
-      <div style={styles.container}>
-        <TimelineView
-          viewType={viewType}
-          startDate={startDate}
-          endDate={endDate}
-          cellWidth={config.cellWidth}
-        />
-        <div style={styles.content}>
-          {resources.map((resource) => (
-            <div key={resource.id} style={styles.resourceRow}>
-              <ResourceView
-                resource={resource}
-                height={config.timeLineHeight}
-              />
-              <div style={styles.eventsContainer}>{renderEvents(resource)}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <Paper className={classes.root}>
+        <Box className={classes.header}>
+          <FilterPanel
+            filters={filters}
+            onFilterChange={setFilters}
+            resources={resources}
+            projects={projects}
+          />
+          <ViewSelector viewType={viewType} onViewChange={handleViewChange} />
+        </Box>
+
+        <Box className={classes.content}>
+          <TimelineView
+            startDate={startDate || new Date()}
+            endDate={endDate || new Date()}
+            viewType={viewType}
+          />
+
+          <Box className={classes.schedulerBody}>
+            {viewType === "resource"
+              ? resources.map((resource) => (
+                  <ResourceView
+                    key={resource.id}
+                    resource={resource}
+                    events={filteredEvents.filter(
+                      (e) => e.resourceId === resource.id
+                    )}
+                    onEventChange={onEventChange}
+                    onEventDelete={onEventDelete}
+                  />
+                ))
+              : projects.map((project) => (
+                  <Box key={project.id} className={classes.projectRow}>
+                    {/* Project view implementation */}
+                  </Box>
+                ))}
+          </Box>
+        </Box>
+
+        <Box className={classes.analytics}>
+          <Analytics
+            resources={resources}
+            projects={projects}
+            events={filteredEvents}
+            selectedProject={selectedProject}
+            onProjectSelect={setSelectedProject}
+          />
+        </Box>
+      </Paper>
     </DndContext>
   );
 };

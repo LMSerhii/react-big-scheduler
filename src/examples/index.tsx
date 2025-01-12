@@ -1,13 +1,16 @@
+import { CssBaseline } from "@mui/material";
+import { ThemeProvider } from "@mui/material/styles";
 import React from "react";
-import { createRoot } from "react-dom/client";
+import ReactDOM from "react-dom";
+import { theme } from "../theme";
 import TestPage from "./test-page";
 
-const container = document.getElementById("root");
-if (!container) throw new Error("Failed to find the root element");
-const root = createRoot(container);
-
-root.render(
-  <React.StrictMode>
+ReactDOM.render(
+  <ThemeProvider theme={theme}>
+    <CssBaseline />
+    {/* <React.StrictMode> */}
     <TestPage />
-  </React.StrictMode>
+    {/* </React.StrictMode> */}
+  </ThemeProvider>,
+  document.getElementById("root")
 );

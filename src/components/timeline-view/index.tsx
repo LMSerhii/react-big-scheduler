@@ -1,41 +1,106 @@
-import moment from "moment";
-import React from "react";
-import { TimelineViewProps } from "../../types";
-import { styles } from "./styles";
+import { Box, Typography } from "@mui/material";
+import { addDays, format, isSameMonth, isWeekend } from "date-fns";
+import React, { useMemo } from "react";
+import { useStyles } from "./styles";
+
+interface TimelineViewProps {
+  startDate: Date;
+  endDate: Date;
+  viewType: "resource" | "project";
+  cellWidth?: number;
+}
 
 const TimelineView: React.FC<TimelineViewProps> = ({
-  viewType,
   startDate,
   endDate,
-  cellWidth
+  viewType,
+  cellWidth = 50
 }) => {
-  const generateTimeSlots = () => {
-    const slots = [];
-    const current = moment(startDate);
-    const end = moment(endDate);
+  const classes = useStyles();
 
-    while (current.isSameOrBefore(end)) {
-      slots.push({
-        time: current.toDate(),
-        label: current.format(viewType === "day" ? "HH:mm" : "DD/MM")
-      });
+  const dates = useMemo(() => {
+    const dates: Date[] = [];
+    let currentDate = startDate;
 
-      current.add(1, viewType === "day" ? "hour" : "day");
+    while (currentDate <= endDate) {
+      dates.push(currentDate);
+      currentDate = addDays(currentDate, 1);
     }
 
-    return slots;
-  };
+    return dates;
+  }, [startDate, endDate]);
 
-  const timeSlots = generateTimeSlots();
+  const months = useMemo(() => {
+    const months: { date: Date; span: number }[] = [];
+    let currentMonth: Date | null = null;
+    let currentSpan = 0;
+
+    dates.forEach((date) => {
+      if (!currentMonth || !isSameMonth(currentMonth, date)) {
+        if (currentMonth) {
+          months.push({ date: currentMonth, span: currentSpan });
+        }
+        currentMonth = date;
+        currentSpan = 1;
+      } else {
+        currentSpan++;
+      }
+    });
+
+    if (currentMonth) {
+      months.push({ date: currentMonth, span: currentSpan });
+    }
+
+    return months;
+  }, [dates]);
 
   return (
-    <div style={styles.container}>
-      {timeSlots.map((slot, index) => (
-        <div key={index} style={{ ...styles.cell, width: cellWidth }}>
-          {slot.label}
-        </div>
-      ))}
-    </div>
+    <Box className={classes.root}>
+      <Box className={classes.monthsRow}>
+        {months.map(({ date, span }) => (
+          <Box
+            key={date.toISOString()}
+            className={classes.monthCell}
+            style={{ width: cellWidth * span }}
+          >
+            <Typography variant="subtitle2">
+              {format(date, "MMMM yyyy")}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+
+      <Box className={classes.daysRow}>
+        {dates.map((date) => (
+          <Box
+            key={date.toISOString()}
+            className={`${classes.dayCell} ${
+              isWeekend(date) ? classes.weekend : ""
+            }`}
+            style={{ width: cellWidth }}
+          >
+            <Typography variant="caption" className={classes.dayNumber}>
+              {format(date, "d")}
+            </Typography>
+            <Typography variant="caption" className={classes.dayName}>
+              {format(date, "EEE")}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+
+      <Box className={classes.gridLines}>
+        {dates.map((date) => (
+          <Box
+            key={date.toISOString()}
+            className={`${classes.gridLine} ${
+              isWeekend(date) ? classes.weekendGrid : ""
+            }`}
+            style={{ width: cellWidth }}
+          />
+        ))}
+      </Box>
+    </Box>
   );
 };
 

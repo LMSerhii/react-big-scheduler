@@ -1,24 +1,42 @@
-export const styles = {
-  container: {
-    width: "100%",
-    height: "100%",
+import makeStyles from "@mui/styles/makeStyles";
+import { Theme } from "@mui/material/styles";
+
+export const useStyles = makeStyles((theme: Theme) => ({
+  root: {
     display: "flex",
-    flexDirection: "column" as const
+    flexDirection: "column",
+    height: "100%",
+    overflow: "hidden",
+    backgroundColor: theme.palette.background.default
   },
   header: {
-    height: 50,
-    borderBottom: "1px solid #e0e0e0"
+    padding: theme.spacing(2),
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: theme.palette.background.paper
   },
   content: {
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
+    overflow: "hidden"
+  },
+  schedulerBody: {
+    display: "flex",
+    flexDirection: "column",
     flex: 1,
     overflow: "auto"
   },
-  resourceRow: {
+  projectRow: {
     display: "flex",
-    borderBottom: "1px solid #e0e0e0"
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    minHeight: 80
   },
-  eventsContainer: {
-    position: "relative" as const,
-    flex: 1
+  analytics: {
+    padding: theme.spacing(2),
+    borderTop: `1px solid ${theme.palette.divider}`,
+    backgroundColor: theme.palette.background.paper
   }
-};
+}));
